@@ -6,14 +6,20 @@
 #define DEBUG_ON
 
 typedef struct CELL {
+	int size;
+	int capacity;
 	char* contents;
 } CELL;
 
 typedef struct ROW {
+	int size;
+	int capacity;
 	char* contents;
 } ROW;
 
 typedef struct TABLE {
+	int size;
+	int capacity;
 	char* contents;
 } TABLE;
 
@@ -39,7 +45,7 @@ CELL* create_main_cell(int n, int max_width, char end_char) {
 	CELL* result = (CELL*)malloc(sizeof(CELL));
 	int len, x, y;
 	char* n_str = (char*)malloc(max_width * sizeof(char));
-	char* content = (char*)malloc((max_width+1) * sizeof(char));
+	result->contents = (char*)malloc((max_width+2) * sizeof(char));
 	
 	len = LEN(n);
 	x = (max_width - len) / 2;
@@ -53,23 +59,19 @@ CELL* create_main_cell(int n, int max_width, char end_char) {
 	
 	int i;
 	for (i = 0; i < x; i++) {
-		content[i] = ' ';
+		*(result->contents + i) = ' ';
 	}
 	for (i = x; i < x + len; i++) {
-		content[i] = *(n_str + (i - x));
+		*(result->contents + i) = *(n_str + (i - x));
 	}
 	for (i = x+len; i < x+len+y; i++) {
-		content[i] = ' ';
+		*(result->contents + i) = ' ';
 	}
-	content[max_width] = end_char;
+	result->contents[max_width] = end_char;
+	result->contents[max_width+1] = '\0';
 	
-	#ifdef DEBUG_ON
-	printf("\n\t|");
-	printf(content);
-	putchar('\n');
-	#endif
-	
-	result->contents = (char*)realloc(content, max_width+1);
+	result->size = max_width + 1;
+	result->capacity = max_width + 2;
 	
 	#ifdef DEBUG_ON
 	printf("\n\t|");
@@ -79,7 +81,7 @@ CELL* create_main_cell(int n, int max_width, char end_char) {
 	#endif
 	
 	free(n_str);
-
+	
 	
 	return result;
 	
@@ -116,6 +118,7 @@ int main() {
 	print_cell(test);
 	print_cell(test2);
 	print_cell(test3);
+	
 }
 
 
