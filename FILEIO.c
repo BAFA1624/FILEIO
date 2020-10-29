@@ -296,6 +296,7 @@ TABLE* create_times_table(int n, int m) {
 			*(c->contents + j) = '-';
 		}
 		*(c->contents + max_width+1) = '\0';
+		c->size = max_width+1;
 		add_cell(r, c);
 	}
 
