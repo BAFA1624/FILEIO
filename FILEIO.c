@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+	
 #define DEBUG_ON
 
 typedef struct CELL {
@@ -137,7 +137,7 @@ char* create_row_str(ROW* r) {
 	}
 	char* result = (char*)malloc((length + 1) * sizeof(char));
 	
-	
+	return result;
 	
 }
 TABLE* create_table(int capacity) {
@@ -169,18 +169,18 @@ TABLE* create_table(int capacity) {
 }
 void add_row(TABLE* target, ROW* new_row) {
 	#ifdef DEBUG_ON
-	printf("\nStarting <add_row>");
+	printf("\nStarting <add_row>\n");
 	#endif
-	if (target->size < target->contents) {
+	if (target->size < target->capacity) {
 		target->contents[target->size] = new_row;
 		target->size++;
 		#ifdef DEBUG_ON
-		printf("\nEnding <add_row>");
+		printf("\nEnding <add_row>\n");
 		#endif
 		return;
 	} else {
 		#ifdef DEBUG_ON
-		printf("\nTable already full, skipping row. Ending <add_row>");
+		printf("\nTable already full, skipping row. Ending <add_row>\n");
 		#endif
 		return;
 	}
@@ -192,11 +192,26 @@ void print_row(ROW* r) {
 	}
 	putchar('\n');
 }
+void print_table(TABLE* t) {
+	for (int i = 0; i < t->size; i++) {
+		print_row(*(t->contents + i));
+	}
+}
+
 
 int main() {
 	
-	
-
+	char a = '|';
+	TABLE* test = create_table(10);
+	for (int i = 0; i < 10; i++) {
+		ROW* r = create_row(10);
+		for (int j = 0; j < 10; j++) {
+			CELL* c = create_cell((i+1)*(j+1), 4, a);
+			add_cell(r, c);
+		}
+		add_row(test, r);
+	}
+	print_table(test);
 
 }
 /*
