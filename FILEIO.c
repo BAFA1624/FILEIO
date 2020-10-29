@@ -14,20 +14,21 @@ typedef struct CELL {
 typedef struct ROW {
 	int size;
 	int capacity;
-	char* contents;
+	CELL** contents;
 } ROW;
 
 typedef struct TABLE {
 	int size;
 	int capacity;
-	char* contents;
+	ROW** contents;
 } TABLE;
 
 int LEN(int x);
-CELL* create_main_cell(int n, int max_width, char end_char);
-//CELL* create_index_cell(int n, int max_width, char end_char);
+CELL* create_cell(int n, int max_width, char end_char);
 void print_cell(CELL* c);
-ROW* create_row();
+ROW* create_row(int capacity);
+void add_cell(ROW* target, CELL* new_cell);
+void print_row(ROW* r);
 
 int LEN(int x) {
 	if (!x) return 1;
@@ -37,7 +38,7 @@ int LEN(int x) {
 	}
 	return i;
 }
-CELL* create_main_cell(int n, int max_width, char end_char) {
+CELL* create_cell(int n, int max_width, char end_char) {
 	#ifdef DEBUG_ON
 	printf("\nStarting <create_main_cell> for n = %d\n", n);
 	#endif
@@ -82,48 +83,122 @@ CELL* create_main_cell(int n, int max_width, char end_char) {
 	
 	free(n_str);
 	
+	return result;
+	
+}
+void print_cell(CELL* c) {
+	printf(c->contents);
+	putchar('\n');
+}
+ROW* create_row(int capacity) {
+	
+	#ifdef DEBUG_ON
+	printf("\nStarting <create_row> with capacity of %d\n", capacity);
+	#endif
+	
+	ROW* result = (ROW*)malloc(sizeof(ROW));
+	if (!result) {
+		printf("\nMem alloc for row failed, exiting program.\n");
+		exit(1);
+	}
+	
+	result->size = 0;
+	result->capacity = capacity;
+	result->contents = (CELL**)malloc(capacity * sizeof(CELL*));
+	if (!result->contents) {
+		printf("\nMem alloc for row->contents failed, exiting program.\n");
+		exit(1);
+	}
 	
 	return result;
 	
 }
-/*void create_index_cell(int n, int max_width, char end_char) {
+void add_cell(ROW* target, CELL* new_cell) {
 	#ifdef DEBUG_ON
-	printf("\nStarting <create_index_cell> for n = %d\n", n);
+	printf("\nStarting <add_cell>\n");
+	#endif
+	if (target->size < target->capacity) {
+			target->contents[target->size] = new_cell;
+			target->size++;
+			#ifdef DEBUG_ON
+			printf("\n\tSuccessfully added new_cell. Ending <add_cell>\n");
+			#endif
+	} else {
+		#ifdef DEBUG_ON
+		printf("\nRow already full, skipping add. Ending <add_cell>\n");
+		#endif
+		return;
+	}
+}
+char* create_row_str(ROW* r) {
+	int length = 0;
+	for (int i = 0; i < r->size; i++) {
+		length += (*(r->contents + i))->size;
+	}
+	char* result = (char*)malloc((length + 1) * sizeof(char));
+	
+	
+	
+}
+TABLE* create_table(int capacity) {
+	
+	#ifdef DEBUG_ON
+	printf("\nStarting <create_table>\n");
 	#endif
 	
-	CELL* result = (CELL*)malloc(sizeof(CELL));
-	int len, start, end;
-	char* content = (char*)malloc(max_width + 1);
+	TABLE* result = (TABLE*)malloc(sizeof(TABLE));
+	if (!result) {
+		printf("\nFailed to allocate memory for table.\n");
+		exit(1);
+	}
 	
+	result->size = 0;
+	result->capacity = capacity;
+	result->contents = (ROW**)malloc(capacity * sizeof(ROW*));
+	if (!result->contents) {
+		printf("\nFailed to allocate memory for table->contents of capacity %d.\n", capacity);
+		exit(1);
+	}
 	
+	#ifdef DEBUG_ON
+	printf("\nEnding <create_table>\n");
+	#endif
 	
-}*/
-void print_cell(CELL* c) {
-	putchar('\n');
-	printf(c->contents);
-	putchar('\n');
+	return result;
+	
+}
+void add_row(TABLE* target, ROW* new_row) {
+	#ifdef DEBUG_ON
+	printf("\nStarting <add_row>");
+	#endif
+	if (target->size < target->contents) {
+		target->contents[target->size] = new_row;
+		target->size++;
+		#ifdef DEBUG_ON
+		printf("\nEnding <add_row>");
+		#endif
+		return;
+	} else {
+		#ifdef DEBUG_ON
+		printf("\nTable already full, skipping row. Ending <add_row>");
+		#endif
+		return;
+	}
 }
 
-
+void print_row(ROW* r) {
+	for (int i = 0; i < r->size; i++) {
+		printf((*(r->contents + i))->contents);
+	}
+	putchar('\n');
+}
 
 int main() {
 	
-	char a = '|';
-	char b = '-';
-	char c = ' ';
 	
-	CELL* test = create_main_cell(3, 3, a);
-	CELL* test2 = create_main_cell(500, 3, a);
-	CELL* test3 = create_main_cell(10, 3, a);
-	print_cell(test);
-	print_cell(test2);
-	print_cell(test3);
-	
+
+
 }
-
-
-
-
 /*
 
 X|1|2|3|4|5|6|7|8
