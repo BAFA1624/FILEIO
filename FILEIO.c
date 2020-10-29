@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 	
-#define DEBUG_ON
+//#define DEBUG_ON
 
 typedef struct CELL {
 	int size;
@@ -18,6 +18,8 @@ typedef struct ROW {
 } ROW;
 
 typedef struct TABLE {
+	int rows;
+	int columns;
 	int size;
 	int capacity;
 	ROW** contents;
@@ -86,6 +88,42 @@ CELL* create_cell(int n, int max_width, char end_char) {
 	return result;
 	
 }
+CELL* create_corner_cell(int max_width) {
+	
+	CELL* result = (CELL*)malloc(sizeof(CELL));
+	result->contents = (char*)malloc( (max_width + 2) * sizeof(char) );
+	result->size = 0;
+	result->capacity = max_width + 2;
+
+	*(result->contents + max_width) = '|';
+	*(result->contents + max_width + 1) = '\0';
+
+	for (int i = 0; i < max_width; i++) {
+		if (max_width % 2 == 0) {
+			if (max_width / 2 == i) {
+				*(result->contents + i) = 'X';
+			} else {
+				*(result->contents + i) = ' ';
+			}
+			result->size++;
+		} else {
+			if ((max_width / 2)-1 == i || max_width / 2 == i) {
+				*(result->contents + i) = 'X';
+			} else {
+				*(result->contents + i) = ' ';
+			}
+			result->size++;
+		}
+	}
+	result->size++;
+
+	return result;
+}
+void clear_cell(CELL* c) {
+	free(c->contents);
+	c->contents = (char*)malloc(c->capacity * sizeof(char));
+	c->size = 0;
+}
 void print_cell(CELL* c) {
 	printf(c->contents);
 	putchar('\n');
@@ -132,11 +170,24 @@ void add_cell(ROW* target, CELL* new_cell) {
 }
 char* create_row_str(ROW* r) {
 	int length = 0;
-	for (int i = 0; i < r->size; i++) {
+	int i, j;
+	CELL* current;
+
+	for (i = 0; i < r->size; i++) {
 		length += (*(r->contents + i))->size;
 	}
+
 	char* result = (char*)malloc((length + 1) * sizeof(char));
-	
+	int size = 0;
+
+	for (i = 0; i < r->size; i++) {
+		current = *(r->contents + i);
+		for (j = 0; j < current->size; j++) {
+			*(result + size) = *(current->contents + j);
+			size++;
+		}
+	}
+
 	return result;
 	
 }
@@ -185,6 +236,11 @@ void add_row(TABLE* target, ROW* new_row) {
 		return;
 	}
 }
+void clear_row(ROW* r) {
+	free(r->contents);
+	r->contents = (CELL**)malloc(r->capacity * sizeof(CELL*));
+	r->size = 0;
+}
 
 void print_row(ROW* r) {
 	for (int i = 0; i < r->size; i++) {
@@ -199,19 +255,137 @@ void print_table(TABLE* t) {
 }
 
 
-int main() {
+TABLE* create_times_table(int n, int m) {
+	int i, j;
+	char space, vert_line;
+	CELL* c;
+	ROW* r;
+
+	space = ' ';
+	vert_line = '|';
+
+	int max_nm = n * m;
+	int max_width = LEN(max_nm);
+
+	TABLE* t = create_table((n + 2) * (m + 1));	// Create a table with one extra column and two extra rows; n = rows, m = columns
+	t->rows = n;
+	t->columns = m;
+	r = create_row(m+1);
 	
-	char a = '|';
-	TABLE* test = create_table(10);
-	for (int i = 0; i < 10; i++) {
-		ROW* r = create_row(10);
-		for (int j = 0; j < 10; j++) {
-			CELL* c = create_cell((i+1)*(j+1), 4, a);
+
+	for (i = 0; i < m+1; i++) {
+		if (i > 0) {
+			c = create_cell(i, max_width, vert_line);
+			add_cell(r, c);
+		} else {
+			c = create_corner_cell(max_width);
 			add_cell(r, c);
 		}
-		add_row(test, r);
+		
 	}
-	print_table(test);
+	
+	add_row(t, r);
+	c = (CELL*)malloc(sizeof(CELL));
+	c->size = 0; 
+	c->capacity = max_width+1;
+	c->contents = (char*)malloc(c->capacity * sizeof(char));
+	r = create_row(m+1);
+
+	for (i = 0; i < m+1; i++) {
+		for(j = 0; j < max_width+1; j++) {
+			*(c->contents + j) = '-';
+		}
+		*(c->contents + max_width+1) = '\0';
+		add_cell(r, c);
+	}
+
+	add_row(t, r);
+	r = create_row(m+1);
+
+	for (i = 1; i < n+1; i++) {
+		#ifdef DEBUG_ON
+		printf("\n\tCreating row for multiples of %d.\n", i);
+		#endif
+
+		for (j = 0; j < m+1; j++) {
+			if (j > 0) {
+				c = create_cell(i*j, max_width, space);
+				add_cell(r, c);
+			} else {
+				c = create_cell(i, max_width, vert_line);
+				add_cell(r, c);
+			}
+
+		}
+		
+		add_row(t, r);
+		r = create_row(m+1);
+	}
+
+	return t;
+
+}
+char* TABLEtoSTR(TABLE* t) {
+	int size, i, j, k;
+	int count = 0;
+	ROW* current_row;
+	CELL* current_cell;
+
+	int n_rows = t->size;
+	int n_cells = (*(t->contents))->size;
+	int cell_size = (*(*(t->contents))->contents)->size;
+
+	size = (n_rows)*(n_cells * cell_size + 1);
+
+	char* result = (char*)malloc((size+1) * sizeof(char));
+
+	for (i = 0; i < t->size; i++) {
+		current_row = *(t->contents + i);
+		for (j = 0; j < current_row->size; j++) {
+			current_cell = *(current_row->contents + j);
+			for (k = 0; k < current_cell->size; k++) {
+				*(result + count) = *(current_cell->contents + k);
+				count++;
+			}
+		}
+		*(result + count) = '\n';
+		count++;
+	}
+	*(result + size) = '\0';
+
+	return result;
+
+}
+
+void write_table_to_file(TABLE* t) {
+	
+	int x = LEN(t->rows);
+	int y = LEN(t->columns);
+
+	char* filename = (char*)malloc((x+y+6) * sizeof(char));
+	sprintf(filename,"%dx%d.txt", t->rows, t->columns);
+
+	FILE* target;
+	target = fopen(filename, "w");
+
+	fprintf(target, TABLEtoSTR(t));
+
+	fclose(target);
+
+}
+
+int main(int argc, char* argv[]) {
+	
+	if (argc > 2) {
+		
+		int x = atoi(argv[1]);
+		int y = atoi(argv[2]);
+		TABLE* t = create_times_table(x, y);
+		write_table_to_file(t);
+
+	} else {
+		printf("\nPlease provide two numbers to turn into a table. Format: ./FILEIO {n1} {n2}\n");
+	}
 
 }
 /*
